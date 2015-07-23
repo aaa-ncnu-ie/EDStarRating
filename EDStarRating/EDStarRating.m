@@ -8,13 +8,11 @@
 #import "EDStarRating.h"
 #define ED_DEFAULT_HALFSTAR_THRESHOLD   0.6
 
-
 @interface EDStarRating()
 @property (nonatomic,strong ) EDImage *tintedStarImage;
 @property (nonatomic,strong ) EDImage *tintedStarHighlightedImage;
 @property (nonatomic) CGColorRef backCGColor;
 @end
-
 
 @implementation EDStarRating
 @synthesize starImage;
@@ -124,7 +122,6 @@
     }
 }
 
-
 -(CGColorRef)cgColor:(EDColor*)color
 {
     CGColorRef cgColor = nil;
@@ -165,7 +162,6 @@
             {
                 if( i< _rating &&  _rating < i+1 )
                 {
-                    
                     CGPoint starPoint = [self pointOfStarAtPosition:i highlighted:NO];
                     float difference = _rating - i;
                     CGRect rectClip;
@@ -184,15 +180,12 @@
                     }
                     if( rectClip.size.width >0 )
                         CGContextClipToRect( ctx, rectClip);
-                    
                 }
-                
                 [self drawImage:self.tintedStarHighlightedImage atPosition:i];
             }
             CGContextRestoreGState(ctx);
         }
     }
-    
 }
 
 #pragma mark Mouse/Touch Interaction
@@ -205,7 +198,6 @@
         if( point.x > p.x )
         {
             float increment=1.0;
-            
             if( self.displayMode == EDStarRatingDisplayHalf  )
             {
                 float difference = (point.x - p.x)/self.starImage.size.width;
@@ -224,7 +216,6 @@
 {
     if( !editable )
         return;
-
     UITouch *touch = [touches anyObject];
     CGPoint touchLocation = [touch locationInView:self];
     self.rating =[self starsForPoint:touchLocation];
@@ -235,7 +226,6 @@
 {
     if( !editable )
         return;
-    
     UITouch *touch = [touches anyObject];
     CGPoint touchLocation = [touch locationInView:self];
     self.rating =[self starsForPoint:touchLocation]; 
@@ -246,13 +236,10 @@
 {
     if( !editable )
         return;
-    
     if( self.delegate && [self.delegate respondsToSelector:@selector(starsSelectionChanged:rating:)] )
         [self.delegate starsSelectionChanged:self rating:self.rating];
-    
     if( self.returnBlock)
         self.returnBlock(self.rating);
-    
 }
 
 #pragma mark - Tint color Support
@@ -260,7 +247,6 @@
 {
     if( starImage == image)
         return;
-    
     starImage = image;
     self.tintedStarImage = [self tintedImage:image];
 }
@@ -269,11 +255,10 @@
 {
     if( starHighlightedImage == image )
         return;
-    
     starHighlightedImage = image;
     self.tintedStarHighlightedImage = [self tintedImage:image];
-
 }
+
 -(EDImage*)tintedImage:(EDImage*)img
 {
     EDImage *tintedImage = img;
@@ -285,14 +270,15 @@
         CGContextTranslateCTM(context, 0, img.size.height);
         CGContextScaleCTM(context, 1.0, -1.0);
         CGRect rect = CGRectMake(0, 0, img.size.width, img.size.height);
+        
         // draw alpha-mask
         CGContextSetBlendMode(context, kCGBlendModeNormal);
         CGContextDrawImage(context, rect, img.CGImage);
+        
         // draw tint color, preserving alpha values of original image
         CGContextSetBlendMode(context, kCGBlendModeSourceIn);
         [self.tintColor setFill];
         CGContextFillRect(context, rect);
-        
         tintedImage = UIGraphicsGetImageFromCurrentImageContext();
         UIGraphicsEndImageContext();
     }
