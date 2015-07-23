@@ -6,7 +6,6 @@
 //  Distributed under MIT license
 
 #import "EDStarRating.h"
-
 #define ED_DEFAULT_HALFSTAR_THRESHOLD   0.6
 
 
@@ -28,14 +27,9 @@
 @synthesize horizontalMargin;
 @synthesize halfStarThreshold;
 @synthesize displayMode;
-#if EDSTAR_MACOSX
-@synthesize backgroundColor=_backgroundColor;
-#endif
 @synthesize returnBlock=_returnBlock;
 
-#pragma mark -
 #pragma mark Init & dealloc
-
 
 -(void)setDefaultProperties
 {
@@ -45,21 +39,8 @@
     displayMode = EDStarRatingDisplayFull;
     halfStarThreshold=ED_DEFAULT_HALFSTAR_THRESHOLD;
     [self setBackgroundColor:[EDColor clearColor]];
-    
 }
-#if  EDSTAR_MACOSX
 
-- (id)initWithFrame:(NSRect)frame
-{
-    self = [super initWithFrame:frame];
-    if (self)
-    {
-        [self setDefaultProperties];
-    }
-    
-    return self;
-}
-#else
 -(id)initWithCoder:(NSCoder *)aDecoder
 {
     self = [super initWithCoder:aDecoder];
@@ -79,12 +60,7 @@
     }
     return self;
 }
-#endif
 
-
-
-
-#pragma mark -
 #pragma mark Setters
 -(void)setReturnBlock:(EDStarRatingReturnBlock)retBlock
 {
@@ -110,14 +86,11 @@
     [self setNeedsDisplay];
 }
 
-#pragma mark -
 #pragma mark Drawing
 -(CGPoint)pointOfStarAtPosition:(NSInteger)position highlighted:(BOOL)hightlighted
 {
     CGSize size = hightlighted?starHighlightedImage.size:starImage.size;
-    
     NSInteger starsSpace = self.bounds.size.width - 2*horizontalMargin;
-    
     NSInteger interSpace = 0;
     interSpace = maxRating-1>0?(starsSpace - (maxRating)*size.width)/(maxRating-1):0;
     if( interSpace <0 )
@@ -133,37 +106,18 @@
 {
     if( backgroundImage )
     {
-#if EDSTAR_MACOSX
-        [backgroundImage drawInRect:self.bounds fromRect:NSMakeRect(0.0, 0.0, backgroundImage.size.width, backgroundImage.size.height) operation:NSCompositeSourceOver fraction:1.0];
-        
-#else
         [backgroundImage drawInRect:self.bounds];
-        
-#endif
     }
-    
 }
 
 -(void)drawImage:(EDImage*)image atPosition:(NSInteger)position
 {
-#if EDSTAR_MACOSX
-    [image drawAtPoint:[self pointOfStarAtPosition:position highlighted:YES] fromRect:NSMakeRect(0.0, 0.0, image.size.width, image.size.height) operation:NSCompositeSourceOver fraction:1.0];
-
-#else
     [image drawAtPoint:[self pointOfStarAtPosition:position highlighted:YES]];
-    
-#endif
-
 }
-
 
 -(void)setBackgroundColor:(EDColor *)color
 {
-#if EDSTAR_IOS
     [super setBackgroundColor:color];
-#else
-    _backgroundColor = color;
-#endif
     if( color )
     {
         self.backCGColor = [self cgColor:color];
@@ -174,33 +128,14 @@
 -(CGColorRef)cgColor:(EDColor*)color
 {
     CGColorRef cgColor = nil;
-    
-#if EDSTAR_MACOSX    
-    NSInteger numberOfComponents = [color numberOfComponents];
-    CGFloat components[numberOfComponents];
-
-    CGColorSpaceRef colorSpace = [[color colorSpace] CGColorSpace];
-    
-    [color getComponents:(CGFloat *)&components];
-    cgColor =  CGColorCreate(colorSpace, components);
-    CGColorSpaceRelease(colorSpace);
-
-#else
     cgColor  = color.CGColor;
-#endif
-
     return cgColor;
 }
 
 -(CGContextRef)currentContext
 {
     CGContextRef ctx=nil;
-#if EDSTAR_MACOSX    
-    NSGraphicsContext    *    nsGraphicsContext    = [NSGraphicsContext currentContext];
-    ctx        = (CGContextRef) [nsGraphicsContext graphicsPort];
-#else
     ctx = UIGraphicsGetCurrentContext();  
-#endif
     return ctx;
 }
 
@@ -260,8 +195,6 @@
     
 }
 
-
-#pragma mark -
 #pragma mark Mouse/Touch Interaction
 -(float) starsForPoint:(CGPoint)point
 {
@@ -287,22 +220,6 @@
     return stars;
 }
 
-#if EDSTAR_MACOSX
--(void)mouseDown:(NSEvent *)theEvent
-{
-    if( !editable )
-        return;
-    
-    if ([theEvent type] == NSLeftMouseDown) {
-        
-        NSPoint pointInView   = [self convertPoint:[theEvent locationInWindow] fromView:nil];
-        
-        self.rating = [self starsForPoint:pointInView];
-        [self setNeedsDisplay];
-    }
-
-}
-#else
 -(void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event 
 {
     if( !editable )
@@ -313,19 +230,7 @@
     self.rating =[self starsForPoint:touchLocation];
     [self setNeedsDisplay];
 }
-#endif
 
-#if EDSTAR_MACOSX
--(void)mouseDragged:(NSEvent *)theEvent
-{
-    if( !editable )
-        return;
-    
-    NSPoint pointInView   = [self convertPoint:[theEvent locationInWindow] fromView:nil];
-    self.rating = [self starsForPoint:pointInView];
-    [self setNeedsDisplay];
-}
-#else
 -(void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event
 {
     if( !editable )
@@ -336,12 +241,6 @@
     self.rating =[self starsForPoint:touchLocation]; 
     [self setNeedsDisplay];
 }
-
-#endif
-
-#if EDSTAR_MACOSX
-- (void)mouseUp:(NSEvent *)theEvent
-#else
 - (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event 
 #endif
 {
@@ -355,7 +254,6 @@
         self.returnBlock(self.rating);
     
 }
-
 
 #pragma mark - Tint color Support
 -(void)setStarImage:(EDImage *)image
@@ -379,11 +277,9 @@
 -(EDImage*)tintedImage:(EDImage*)img
 {
     EDImage *tintedImage = img;
-#if EDSTAR_IOS
     // Make sure tintColor is available (>= iOS 7.0 runtime)
     if( [self respondsToSelector:@selector(tintColor)] && img.renderingMode == UIImageRenderingModeAlwaysTemplate )
     {
-        
         UIGraphicsBeginImageContextWithOptions(img.size, NO, [UIScreen mainScreen].scale );
         CGContextRef context = UIGraphicsGetCurrentContext();
         CGContextTranslateCTM(context, 0, img.size.height);
@@ -400,16 +296,13 @@
         tintedImage = UIGraphicsGetImageFromCurrentImageContext();
         UIGraphicsEndImageContext();
     }
-#endif
     return tintedImage;
 }
-#if EDSTAR_IOS
 -(void)tintColorDidChange
 {
     self.tintedStarImage = [self tintedImage:self.starImage];
     self.tintedStarHighlightedImage = [self tintedImage:self.starHighlightedImage];
     [self setNeedsDisplay];
 }
-#endif
 
 @end
