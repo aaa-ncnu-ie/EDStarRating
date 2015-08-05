@@ -231,8 +231,8 @@
     self.rating =[self starsForPoint:touchLocation]; 
     [self setNeedsDisplay];
 }
+
 - (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event 
-#endif
 {
     if( !editable )
         return;
